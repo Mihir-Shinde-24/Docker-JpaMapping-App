@@ -1,0 +1,41 @@
+version: '3'
+
+# Define each container config here under services
+services:
+  # DB Service
+  dbservice:
+    # Base Image of mysql
+    image: mysql:8.0.26
+    # Configurations & Environment variables
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    # Create a copy of Databse so that data wont be lost after container is re-initialized  
+    volumes:
+      - ./../../../mysql-backup:/var/lib/mysql
+    ports:
+      - 3306:3306
+  
+  # Springboot App
+  springappservice:
+    # Path of Dockerfile of Springboot App
+    build: ./../../../
+    # To Start dbservice before Springboot App
+    depends_on:
+      - dbservice
+    # Configurations & Environment variables
+    environment:
+      - spring.datasource.url=jdbc:mysql://dbservice:3306/springbootdb?createDatabaseIfNotExist=true
+      - spring.datasource.username=root
+      - spring.datasource.password=root
+    ports:
+      - 8085:8080
+
+    # To Tell dbservice is used in springappservice  
+    links:
+      - dbservice
+# Defined mysql-backup as a volume, so that databse data can be reused again by another service
+volumes:
+  mysql-backup:
+    
+
+    
